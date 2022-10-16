@@ -19,9 +19,9 @@ import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
 
 
 import com.khm.reactivepostgres.entity.Member;
+import com.khm.reactivepostgres.entity.Student;
 import com.khm.reactivepostgres.repository.MemberRepository;
-
-
+import com.khm.reactivepostgres.repository.StudentRepository;
 
 import java.time.Duration;
 
@@ -46,31 +46,31 @@ public class ReactivePostgresApplication {
   }
 
   @Bean
-  public CommandLineRunner demo(MemberRepository memberRepository) {
+  public CommandLineRunner demo(StudentRepository studentRepository) {
 
     
     return (args) -> {
-      memberRepository.deleteAll().subscribe();
+      studentRepository.deleteAll().subscribe();
         // save a few customers
-      memberRepository.saveAll(Arrays.asList(new Member( "Rodas", "Ferreira"),
-          new Member( "Edgar", "Duarte"),
-          new Member("Alexy", "Almeida"),
-          new Member( "Tatiana", "Almeida"),
-          new Member( "Sofia", "Neves")))
+      studentRepository.saveAll(Arrays.asList(new Student( "Rodas", "16-10-2022", 0, 3.2f),
+          new Student( "Edgar", "16-10-2022", 0, 3.2f),
+          new Student("Alexy", "16-10-2022", 0, 3.2f),
+          new Student( "Tatiana", "16-10-2022", 0, 3.2f),
+          new Student( "Sofia","16-10-2022", 0, 3.2f)))
           .blockLast(Duration.ofSeconds(10));
 
-      memberRepository.save(new Member("WQRWQERWQRWQR", "Barroso")).subscribe();
+      studentRepository.save(new Student("WQRWQERWQRWQR","16-10-2022", 0, 3.2f)).subscribe();
       // fetch all customers
-      log.info("Customers found with findAll():");
+      /*log.info("Customers found with findAll():");
       log.info("-------------------------------");
-      memberRepository.findAll().doOnNext(customer -> {
+      studentRepository.findAll().doOnNext(customer -> {
         log.info(customer.toString());
       }).blockLast(Duration.ofSeconds(10));
 
       log.info("");
 
             // fetch an individual customer by ID
-      memberRepository.findById(1L).doOnNext(customer -> {
+        studentRepository.findById(1L).doOnNext(customer -> {
         log.info("Customer found with findById(1L):");
         log.info("--------------------------------");
         log.info(customer.toString());
@@ -81,10 +81,10 @@ public class ReactivePostgresApplication {
       // fetch customers by last name
       log.info("Customer found with findByLastName('Almeida'):");
       log.info("--------------------------------------------");
-      memberRepository.findByLastName("Almeida").doOnNext(bauer -> {
+      studentRepository.findByLastName("Almeida").doOnNext(bauer -> {
         log.info(bauer.toString());
         }).blockLast(Duration.ofSeconds(10));;
-        log.info("");
+        log.info("");*/
     };
 }
 }
