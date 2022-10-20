@@ -1,9 +1,9 @@
-package com.khm.reactivepostgres.controller;
+package com.khm.reactivepostgres.service.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.khm.reactivepostgres.repository.StudentRepository;
+import com.khm.reactivepostgres.service.repository.StudentRepository;
 
 import lombok.RequiredArgsConstructor;
 

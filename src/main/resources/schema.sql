@@ -1,18 +1,28 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+DROP TABLE IF EXISTS professor_student;
+DROP TABLE IF EXISTS student;
+DROP TABLE IF EXISTS professor;
 
-CREATE TABLE IF NOT EXISTS member (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    last_name TEXT NOT NULL
+
+CREATE TABLE student (
+    id     SERIAL,
+    name     VARCHAR(512) NOT NULL,
+    birthdate VARCHAR(512) NOT NULL,
+    credits     INTEGER NOT NULL,
+    grade     FLOAT(2) NOT NULL,
+    PRIMARY KEY(id)
 );
 
-CREATE TABLE IF NOT EXISTS balance (
-    id uuid default uuid_generate_v4(),
-    member_id TEXT NOT NULL,
-    balance integer NOT NULL,
-    created_by TEXT NOT NULL,
-    created_date bigint NOT NULL,
-    last_modified_date bigint NOT NULL,
-    last_modified_by TEXT NOT NULL,
-    updated_by TEXT
+CREATE TABLE professor (
+    id     SERIAL,
+    name VARCHAR(512) NOT NULL,
+    PRIMARY KEY(id)
 );
+
+CREATE TABLE professor_student (
+    professor_id INTEGER,
+    student_id     INTEGER,
+    PRIMARY KEY(professor_id,student_id)
+);
+
+ALTER TABLE professor_student ADD CONSTRAINT professor_student_fk1 FOREIGN KEY (professor_id) REFERENCES professor(id);
+ALTER TABLE professor_student ADD CONSTRAINT professor_student_fk2 FOREIGN KEY (student_id) REFERENCES student(id);

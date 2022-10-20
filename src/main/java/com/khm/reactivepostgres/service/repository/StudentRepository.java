@@ -1,4 +1,4 @@
-package com.khm.reactivepostgres.repository;
+package com.khm.reactivepostgres.service.repository;
 
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
