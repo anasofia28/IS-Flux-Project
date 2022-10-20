@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.khm.reactivepostgres.entity.Event;
+import com.khm.reactivepostgres.entity.Student;
+
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.core.publisher.Flux;
@@ -21,24 +23,34 @@ public class ReactiveClientApplication {
     WebClient client(){
         return WebClient.create("http://localhost:8080");
     }
+
     public static void main(String[] args) {
         new SpringApplicationBuilder(ReactiveClientApplication.class)
         .properties(Collections.singletonMap("server.port", "8081"))
         .run(args);    
     }
 
+
     @Bean
     CommandLineRunner demo(WebClient client){
 
-        System.out.println("WWEQRWERWERWERWERWERWER");
+
         return args -> {
-            client
+
+            //Get all students
+            Flux<Student> a = client
                 .get()
-                .uri("/events")
+                .uri("/student/getStudents")
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
-                .bodyToFlux(Event.class)
-                .subscribe(System.out::println);
+                .bodyToFlux(Student.class);
+
+            
+                
+                a.subscribe(cr -> System.out.println("Name " + cr.getName() + " BirthDate " + cr.getBirthdate().toString()));
+                a.blockLast();
+                a.subscribe(cr -> System.out.println("Name " + cr.getName() + " BirthDate " + cr.getBirthdate().toString()));
+            
         };
     }
 }

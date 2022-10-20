@@ -13,6 +13,16 @@ public class Student {
     int credits;
     float grade;
 
+    public Student() {}
+
+    public Student(Long id, String name, String birthdate, int credits, float grade){
+        this.id = id;
+        this.name = name;
+        this.birthdate = birthdate;
+        this.credits = credits;
+        this.grade = grade;
+    }
+
     public Long getId() {
         return this.id;
     }

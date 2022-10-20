@@ -1,5 +1,6 @@
 package com.khm.reactivepostgres.service;
 
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
@@ -43,9 +44,9 @@ public class ReactiveServiceApplication{
     StudentRepository sr;
     ProfessorRepository pr;
   
-    @GetMapping("/student/{id}")
-    Mono<Student> eventById(@PathVariable long id){
-      return sr.findById(id);
+    @GetMapping("/student/getStudents")
+    Flux<Student> eventById(){
+      return sr.findAll();
     }
 
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE, value = "/events")
@@ -55,7 +56,6 @@ public class ReactiveServiceApplication{
         return Flux.zip(eventFlux, durationFlux).map(Tuple2::getT1);
     }
 
-    @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE, value = "/student/{id}")
 
     @Bean
     ConnectionFactoryInitializer initializer(@Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
@@ -81,14 +81,14 @@ public class ReactiveServiceApplication{
       pr = professorRepository;
       studentRepository.deleteAll().subscribe();
         // save a few customers
-      studentRepository.saveAll(Arrays.asList(new Student( "Rodas", "16-10-2022", 0, 3.2f),
-          new Student( "Edgar", "16-10-2022", 0, 3.2f),
-          new Student("Alexy", "16-10-2022", 0, 3.2f),
-          new Student( "Tatiana", "16-10-2022", 0, 3.2f),
-          new Student( "Sofia","16-10-2022", 0, 3.2f)))
+      studentRepository.saveAll(Arrays.asList(new Student( "Rodas","09-06-2001", 0, 3.2f),
+          new Student( "Edgar", "27-02-2001", 0, 3.2f),
+          new Student("Alexy", "23-10-1997", 0, 3.2f),
+          new Student( "Tatiana", "05-05-2001", 0, 3.2f),
+          new Student( "Sofia","30-12-2001", 0, 3.2f)))
           .blockLast(Duration.ofSeconds(10));
 
-      studentRepository.save(new Student("WQRWQERWQRWQR","16-10-2022", 0, 3.2f)).subscribe();
+      //studentRepository.save(new Student("WQRWQERWQRWQR","16-10-2022", 0, 3.2f)).subscribe();
 
 
 
