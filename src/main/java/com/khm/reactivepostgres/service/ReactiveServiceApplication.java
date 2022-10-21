@@ -26,6 +26,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.core.publisher.Flux;
 import io.r2dbc.spi.ConnectionFactory;
+import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -85,12 +86,51 @@ public class ReactiveServiceApplication{
           new Student( "Edgar", "27-02-2001", 120, 20),
           new Student("Alexy", "23-11-1995", 180, 16),
           new Student( "Tatiana", "05-05-2001", 180, 15),
-          new Student( "Sofia","30-12-2001", 140, 16)))
+          new Student( "Sofia","28-05-2001", 140, 16)))
           .blockLast(Duration.ofSeconds(10));
 
 
+        //Meter try catch blah blah
+        //Meter um print com as opcoes
+        Scanner input = new Scanner(System.in);
+        int option = input.nextInt();
+          
+        switch(option){
+          //Alexy
+          case 1:
+            break;
+          //Edgar
+          case 2:
+            break;
+          //Alexy
+          case 3:
+            break;
+          //Alexy
+          case 4:
+            break;
+          //Alexy
+          case 5:
+            break;
+          //Alexy
+          case 6:
+            break;
+          //Edgar
+          case 7:
+            break;
+          //Edgar
+          case 8:
+            break;
+
+          default:
+            System.out.println("You are monkey"); 
+            break;
+
+        }
 
 
+
+
+        input.close();
 
       
       // fetch all customers

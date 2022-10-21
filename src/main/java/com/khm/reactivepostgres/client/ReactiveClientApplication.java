@@ -102,7 +102,7 @@ public class ReactiveClientApplication {
             System.out.println("---Student grades average---");
 
             client
-                .get()
+                .get()  
                 .uri("/student/getStudents")
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
