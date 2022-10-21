@@ -11,11 +11,11 @@ public class Student {
     String name;
     String birthdate;
     int credits;
-    float grade;
+    int grade;
 
     public Student() {}
 
-    public Student(Long id, String name, String birthdate, int credits, float grade){
+    public Student(Long id, String name, String birthdate, int credits, int grade){
         this.id = id;
         this.name = name;
         this.birthdate = birthdate;
@@ -55,15 +55,15 @@ public class Student {
         this.credits = credits;
     }
 
-    public float getGrade() {
+    public int getGrade() {
         return this.grade;
     }
 
-    public void setGrade(float grade) {
+    public void setGrade(int grade) {
         this.grade = grade;
     }
 
-    public Student( String name, String birthdate, int credits, float grade){
+    public Student( String name, String birthdate, int credits, int grade){
         this.name = name;
         this.birthdate = birthdate;
         this.credits = credits;

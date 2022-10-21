@@ -8,7 +8,7 @@ CREATE TABLE student (
     name     VARCHAR(512) NOT NULL,
     birthdate VARCHAR(512) NOT NULL,
     credits     INTEGER NOT NULL,
-    grade     FLOAT(2) NOT NULL,
+    grade     INTEGER NOT NULL,
     PRIMARY KEY(id)
 );
 
