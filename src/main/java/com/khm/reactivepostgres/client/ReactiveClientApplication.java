@@ -47,9 +47,24 @@ public class ReactiveClientApplication {
 
             
                 
-                a.subscribe(cr -> System.out.println("Name " + cr.getName() + " BirthDate " + cr.getBirthdate().toString()));
-                a.blockLast();
-                a.subscribe(cr -> System.out.println("Name " + cr.getName() + " BirthDate " + cr.getBirthdate().toString()));
+                a.doOnNext(cr -> System.out.println("Name: " + cr.getName() + " BirthDate: " + cr.getBirthdate().toString())).blockLast();
+                a.blockFirst();
+
+                Mono<Long> count = a.count(); 
+                System.out.println("---Number Students---");
+                count.doOnNext(cr -> System.out.println("Count: " + cr)).block();
+ 
+
+                System.out.println("---Students still active ---");
+                a.filter(gr -> gr.getCredits() < 180).doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Credits:" + cr.getCredits())).blockLast();
+
+
+                System.out.println("---Courses completed---");
+                a.doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Number Courses:" + cr.getCredits()/6)).blockLast();
+                
+
+                System.out.println("---Students in last year---");
+                a.filter(gr -> gr.getCredits() < 180 && gr.getCredits() >= 120).sort((s1,s2) -> {return s2.getCredits()-s1.getCredits();}).doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Credits:" + cr.getCredits())).blockLast();
             
         };
     }

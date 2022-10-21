@@ -81,11 +81,11 @@ public class ReactiveServiceApplication{
       pr = professorRepository;
       studentRepository.deleteAll().subscribe();
         // save a few customers
-      studentRepository.saveAll(Arrays.asList(new Student( "Rodas","09-06-2001", 0, 3.2f),
-          new Student( "Edgar", "27-02-2001", 0, 3.2f),
-          new Student("Alexy", "23-10-1997", 0, 3.2f),
-          new Student( "Tatiana", "05-05-2001", 0, 3.2f),
-          new Student( "Sofia","30-12-2001", 0, 3.2f)))
+      studentRepository.saveAll(Arrays.asList(new Student( "Rodas","09-06-2001", 70, 3.2f),
+          new Student( "Edgar", "27-02-2001", 120, 3.2f),
+          new Student("Alexy", "23-10-1997", 180, 3.2f),
+          new Student( "Tatiana", "05-05-2001", 30, 3.2f),
+          new Student( "Sofia","30-12-2001", 140, 3.2f)))
           .blockLast(Duration.ofSeconds(10));
 
       //studentRepository.save(new Student("WQRWQERWQRWQR","16-10-2022", 0, 3.2f)).subscribe();
