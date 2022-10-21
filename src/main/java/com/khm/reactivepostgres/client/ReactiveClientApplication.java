@@ -147,23 +147,7 @@ public class ReactiveClientApplication {
                 .doOnNext(System.out::println)
                 .block();
 
-            /*System.out.println("---Student who finished grades standard deviation---");
-            client
-                .get()
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class)
-                .filter(gr -> gr.getGrade() == 180)
-                .collectList()
-                .map( (x) -> {
-                    float sum = 0f;
-                    for(int i = 0; i < x.size(); i++){
-                        sum += x.get(i).getGrade();
-                    }
-                    return sum/x.size();})
-                .doOnNext(System.out::println)
-                .block();*/
+
         };
     }
 }
