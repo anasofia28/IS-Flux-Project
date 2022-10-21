@@ -83,12 +83,12 @@ public class ReactiveServiceApplication{
         // save a few customers
       studentRepository.saveAll(Arrays.asList(new Student( "Rodas","09-06-2001", 70, 4),
           new Student( "Edgar", "27-02-2001", 120, 20),
-          new Student("Alexy", "23-10-1997", 180, 16),
+          new Student("Alexy", "23-11-1995", 180, 16),
           new Student( "Tatiana", "05-05-2001", 180, 15),
           new Student( "Sofia","30-12-2001", 140, 16)))
           .blockLast(Duration.ofSeconds(10));
 
-      //studentRepository.save(new Student("WQRWQERWQRWQR","16-10-2022", 0, 3.2f)).subscribe();
+
 
 
 
