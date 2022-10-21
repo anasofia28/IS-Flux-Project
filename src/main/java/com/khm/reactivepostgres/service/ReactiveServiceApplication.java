@@ -80,7 +80,7 @@ public class ReactiveServiceApplication{
     return (args) -> {
       sr = studentRepository;
       pr = professorRepository;
-      studentRepository.deleteAll().subscribe();
+
         // save a few customers
       studentRepository.saveAll(Arrays.asList(new Student( "Rodas","09-06-2001", 70, 4),
           new Student( "Edgar", "27-02-2001", 120, 20),
