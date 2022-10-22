@@ -101,53 +101,71 @@ public class ReactiveClientApplication {
 
             System.out.println("---Student grades average---");
 
-            client
+            Flux<Student> stream = client
                 .get()  
                 .uri("/student/getStudents")
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
-                .bodyToFlux(Student.class)
-                .collectList()
-                .map( (x) -> {
-                    float sum = 0f;
-                    for(int i = 0; i < x.size(); i++){
-                        sum += x.get(i).getGrade();
-                    }
-                    return sum/x.size();})
-                .doOnNext(System.out::println)
-                .block();
+                .bodyToFlux(Student.class);
+
+
+            Mono<Integer> sum = stream
+                    .map( s -> s.getGrade())
+                    .reduce(0,(x1, x2) -> x1 + x2);
+
+            Mono<Long> count = stream
+                    .count(); 
+            
+            Flux.zip(sum, count)
+                .map(x-> calculateAverage(x.getT1(),x.getT2()))
+                .doOnNext(cr-> System.out.println("Average grades: " + String.valueOf(cr)))
+                .blockLast();
+
             
                 //a.mean();
 
             System.out.println("---Student who finished grades average---");
-            
-            
-            client
+        
+            Flux<Student> stream2 = client
                 .get()
                 .uri("/student/getStudents")
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
                 .bodyToFlux(Student.class)
-                .filter(gr -> gr.getCredits() == 180)
-                .collectList()
-                .map( (x) -> {
-                    float mean = 0;
-                    for(int i = 0; i < x.size(); i++){
-                        mean += x.get(i).getGrade();
-                    }
+                .filter(gr -> gr.getCredits() == 180);
+            
+            Mono<Integer> sum2 =  stream2
+                        .map( s -> s.getGrade())
+                        .reduce(0,(x1, x2) -> x1 + x2);
                     
-                    mean = mean/x.size();
-                    System.out.println(mean);
-                    
-                    float aux = 0;
-                    for(int i = 0; i < x.size(); i++){
-                        aux += Math.pow(x.get(i).getGrade() - mean,2);
-                    }
-                    return Math.sqrt(aux/x.size());})
-                .doOnNext(System.out::println)
-                .block();
+            Mono<Long> count2 = stream2
+                        .count();
+            
+            Float mean2 = Flux.zip(sum2, count2)
+                .map(x-> calculateAverage(x.getT1(),x.getT2()))
+                .blockLast();
+            
+            System.out.println("Average grade for finished students: " + String.valueOf(mean2));
+
+            Long fluxSize = count2.block();
+
+            stream2
+                .map(x -> calculateStandardDeviation(x.getGrade(), mean2))
+                .reduce((t, u) -> Double.sum(t, u))
+                .map(x ->  Math.sqrt(x/fluxSize))
+                .doOnNext(cr-> System.out.println("Standard deviation: " + String.valueOf(cr)))
+                .block();        
 
 
         };
+    }
+
+    public float calculateAverage(int sum, long size){
+        return (float)sum/size;
+    }
+
+    public double calculateStandardDeviation(int grade, float mean){
+        return Math.pow(grade - mean, 2);
+
     }
 }
