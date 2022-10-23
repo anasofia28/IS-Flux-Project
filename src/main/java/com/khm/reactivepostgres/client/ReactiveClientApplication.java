@@ -1,6 +1,9 @@
 package com.khm.reactivepostgres.client;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -147,7 +150,45 @@ public class ReactiveClientApplication {
                 .doOnNext(System.out::println)
                 .block();
 
+            System.out.println("---Oldest student---");
+
+            client
+                .get()
+                .uri("/student/getStudents")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .retrieve()
+                .bodyToFlux(Student.class)
+                .reduce(this::oldestDate)
+                .doOnNext(cr -> System.out.println(cr.getName() + " (" + cr.getBirthdate() + ")"))
+                .block();
 
         };
     }
+
+    public Student oldestDate(Student s1, Student s2){
+
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        Date date1 = new Date();
+        Date date2 = new Date();
+
+        try {
+            date1 = formatter.parse(s1.getBirthdate());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            date2 = formatter.parse(s2.getBirthdate());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    
+        if (date1.before(date2)) return s1;
+        else return s2;
+    }
 }
+
+
+
+
+

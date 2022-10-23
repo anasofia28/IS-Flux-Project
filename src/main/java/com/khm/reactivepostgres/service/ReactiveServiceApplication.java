@@ -73,7 +73,7 @@ public class ReactiveServiceApplication{
     }
 
 
-    @Bean
+  @Bean
   public CommandLineRunner run(StudentRepository studentRepository, ProfessorRepository professorRepository) {
 
     
