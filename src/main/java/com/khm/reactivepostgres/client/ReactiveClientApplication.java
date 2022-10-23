@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.khm.reactivepostgres.entity.Event;
+import com.khm.reactivepostgres.entity.Professor;
 import com.khm.reactivepostgres.entity.Student;
 
 import reactor.core.publisher.Mono;
@@ -45,7 +46,7 @@ public class ReactiveClientApplication {
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
                 .bodyToFlux(Student.class)
-                .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " BirthDate: " + cr.getBirthdate().toString()))
+                .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " BirthDate: " + cr.getBirthdate()))
                 .blockLast();
 
 
@@ -157,6 +158,54 @@ public class ReactiveClientApplication {
                 .block();        
 
 
+            
+            System.out.println("--- Average number of professors per student---");
+
+            Flux<Student> student_stream = client
+                .get()
+                .uri("/student/getStudents")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .retrieve()
+                .bodyToFlux(Student.class);
+            
+            Mono<Long> studentQuantity =  student_stream
+                                        .count();
+
+            Mono<Long> studentProfessorsQuantity = student_stream.
+                                            flatMap((s) -> { return client
+                                                                .get()
+                                                                .uri("/get/studentProf/{id}", s.getId())
+                                                                .accept(MediaType.TEXT_EVENT_STREAM)
+                                                                .retrieve()
+                                                                .bodyToFlux(Professor.class);})
+                                            .count();
+
+            System.out.println( ((float) studentProfessorsQuantity.block() / (float)studentQuantity.block() ));
+
+
+            System.out.println("---Complete data of all students---");
+            Flux<Student> student_stream2 = client
+                            .get()
+                            .uri("/student/getStudents")
+                            .accept(MediaType.TEXT_EVENT_STREAM)
+                            .retrieve()
+                            .bodyToFlux(Student.class);
+            
+            Flux<Flux<String>> strings = student_stream2
+                    .map( (s) ->{
+                        Mono<String> a = Mono.just("Name: "+ s.getName() + " Birthdate: " + s.getBirthdate() + " Credits: " + s.getCredits() + " Grades: " + s.getGrade() + " Professors:");
+
+                        return a.concatWith(client
+                            .get()
+                            .uri("/get/studentProf/{id}", s.getId())
+                            .accept(MediaType.TEXT_EVENT_STREAM)
+                            .retrieve()
+                            .bodyToFlux(Professor.class)
+                            .map(p -> p.getName()));
+                        });
+                        
+            strings.doOnNext(s-> s.doOnNext(e->System.out.println(e)).subscribe()).subscribe();
+                    
         };
     }
 
@@ -167,5 +216,9 @@ public class ReactiveClientApplication {
     public double calculateStandardDeviation(int grade, float mean){
         return Math.pow(grade - mean, 2);
 
+    }
+
+    public void printStudentData(Student student, WebClient client){
+       
     }
 }

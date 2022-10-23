@@ -70,10 +70,17 @@ public class ReactiveServiceApplication{
 
     @GetMapping("get/studentProf/{id1}")
     Flux<Professor> getStudentProfessors(@PathVariable long id1){
-      return spr.findByStudentId(id1)
-        .flatMap(x -> {return pr.findById(x.getProfessorId());});
-    
+      Flux<Professor> p = spr.findByStudentId(id1)
+                              .flatMap(x -> {return pr.findById(x.getProfessorId());});
+      
+      return p;
       }
+      
+
+    @GetMapping("get/allProfessors")
+    public Flux<Professor> getAllProfessors() {
+      return pr.findAll();
+    } 
 
     @Bean
     ConnectionFactoryInitializer initializer(@Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
