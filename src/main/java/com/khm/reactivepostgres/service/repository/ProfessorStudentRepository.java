@@ -5,4 +5,6 @@ import com.khm.reactivepostgres.entity.Professor;
 
 public interface ProfessorStudentRepository extends ReactiveCrudRepository<Professor, Long> {
     
+
+
 }
