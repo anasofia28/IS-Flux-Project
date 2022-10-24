@@ -191,20 +191,25 @@ public class ReactiveClientApplication {
                             .retrieve()
                             .bodyToFlux(Student.class);
             
-            Flux<Flux<String>> strings = student_stream2
-                    .map( (s) ->{
-                        Mono<String> a = Mono.just("Name: "+ s.getName() + " Birthdate: " + s.getBirthdate() + " Credits: " + s.getCredits() + " Grades: " + s.getGrade() + " Professors:");
+            Flux<String> strings = student_stream2
+                    .flatMap( (s) ->{
+                        Flux<String> a = Flux.just("Name: "+ s.getName() + " Birthdate: " + s.getBirthdate() + " Credits: " + s.getCredits() + " Grades: " + s.getGrade() + " Professors:");
 
-                        return a.concatWith(client
-                            .get()
-                            .uri("/get/studentProf/{id}", s.getId())
-                            .accept(MediaType.TEXT_EVENT_STREAM)
-                            .retrieve()
-                            .bodyToFlux(Professor.class)
-                            .map(p -> p.getName()));
+
+
+                        return Flux.zip(a, client
+                                            .get()
+                                            .uri("/get/studentProf/{id}", s.getId())
+                                            .accept(MediaType.TEXT_EVENT_STREAM)
+                                            .retrieve()
+                                            .bodyToFlux(Professor.class)
+                                            .map(p -> p.getName())
+                                            .reduce((b,c)-> b + c))
+                                .map(x -> x.getT1() + x.getT2());
+
                         });
                         
-            strings.doOnNext(s-> s.doOnNext(e->System.out.println(e)).subscribe()).subscribe();
+            strings.doOnNext(s-> System.out.println(s)).blockLast();
                     
         };
     }

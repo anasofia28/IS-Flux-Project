@@ -70,10 +70,8 @@ public class ReactiveServiceApplication{
 
     @GetMapping("get/studentProf/{id1}")
     Flux<Professor> getStudentProfessors(@PathVariable long id1){
-      Flux<Professor> p = spr.findByStudentId(id1)
+      return spr.findByStudentId(id1)
                               .flatMap(x -> {return pr.findById(x.getProfessorId());});
-      
-      return p;
       }
       
 
