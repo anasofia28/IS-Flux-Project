@@ -39,7 +39,6 @@ public class ReactiveClientApplication {
         return args -> {
 
             //Get all students
-            //Perguntar ao stor se podemos apenas chamar 1 vez todos os clientes
             client
                 .get()
                 .uri("/student/getStudents")
@@ -146,6 +145,7 @@ public class ReactiveClientApplication {
                 .map(x-> calculateAverage(x.getT1(),x.getT2()))
                 .blockLast();
             
+            //FEATURE 8
             System.out.println("Average grade for finished students: " + String.valueOf(mean2));
 
             Long fluxSize = count2.block();
@@ -159,6 +159,7 @@ public class ReactiveClientApplication {
 
 
             
+            //FEATURE 9
             System.out.println("--- Average number of professors per student---");
 
             Flux<Student> student_stream = client
@@ -177,12 +178,27 @@ public class ReactiveClientApplication {
                                                                 .uri("/get/studentProf/{id}", s.getId())
                                                                 .accept(MediaType.TEXT_EVENT_STREAM)
                                                                 .retrieve()
-                                                                .bodyToFlux(Professor.class);})
+                                                                .bodyToFlux(Long.class);})
                                             .count();
 
             System.out.println( ((float) studentProfessorsQuantity.block() / (float)studentQuantity.block() ));
 
+            //FEATURE 10
+            //System.out.println("Name and number of students per professor")
+            
+            Flux<Student> student_stream3 = client
+                            .get()
+                            .uri("/student/getStudents")
+                            .accept(MediaType.TEXT_EVENT_STREAM)
+                            .retrieve()
+                            .bodyToFlux(Student.class);
 
+            
+
+
+
+
+            //FEATURE 11
             System.out.println("---Complete data of all students---");
             Flux<Student> student_stream2 = client
                             .get()
@@ -193,20 +209,30 @@ public class ReactiveClientApplication {
             
             Flux<String> strings = student_stream2
                     .flatMap( (s) ->{
-                        Flux<String> a = Flux.just("Name: "+ s.getName() + " Birthdate: " + s.getBirthdate() + " Credits: " + s.getCredits() + " Grades: " + s.getGrade() + " Professors:");
+                        Mono<String> a = Mono.just("Name: "+ s.getName() + "|Birthdate: " + s.getBirthdate() + "|Credits: " + s.getCredits() + "|Grades: " + s.getGrade() + "|Professors:");
 
+                        Flux<Long> teachersId = client
+                                    .get()
+                                    .uri("/get/studentProf/{id}", s.getId())
+                                    .accept(MediaType.TEXT_EVENT_STREAM)
+                                    .retrieve()
+                                    .bodyToFlux(Long.class);
 
+                        return Mono.zip(a, teachersId
+                                            .flatMap((x) ->  client
+                                                            .get()
+                                                            .uri("/get/professor/{id}", x)
+                                                            .accept(MediaType.TEXT_EVENT_STREAM)
+                                                            .retrieve()
+                                                            .bodyToFlux(Professor.class))
+                                                            .map(p->p.getName())
+                                            .collectList()
+                                            .flatMap(l -> {
+                                                if(l.isEmpty()) return Mono.just(" No professors");
+                                                return Mono.just(l);
+                                            }))                                            
 
-                        return Flux.zip(a, client
-                                            .get()
-                                            .uri("/get/studentProf/{id}", s.getId())
-                                            .accept(MediaType.TEXT_EVENT_STREAM)
-                                            .retrieve()
-                                            .bodyToFlux(Professor.class)
-                                            .map(p -> p.getName())
-                                            .reduce((b,c)-> b + c))
                                 .map(x -> x.getT1() + x.getT2());
-
                         });
                         
             strings.doOnNext(s-> System.out.println(s)).blockLast();
