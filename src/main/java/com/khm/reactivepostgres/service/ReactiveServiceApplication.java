@@ -15,6 +15,7 @@ import org.springframework.data.relational.core.sql.render.SqlRenderer;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -60,6 +61,12 @@ public class ReactiveServiceApplication{
       StudentProfessor new_relation = new StudentProfessor(id1, id2);
       spr.save(new_relation).subscribe();
       return Mono.just(new_relation);
+    }
+
+    @PostMapping("/add/student")
+    String addStudent(@RequestBody Student s){
+      sr.save(s).subscribe();
+      return "Yeet";
     }
 
     @GetMapping("/delete/relationship/{id1}")

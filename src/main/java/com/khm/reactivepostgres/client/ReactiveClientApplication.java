@@ -1,6 +1,11 @@
 package com.khm.reactivepostgres.client;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,6 +13,10 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toMap;
+import static java.util.Map.Entry.comparingByValue;
+
 
 import com.khm.reactivepostgres.entity.Event;
 import com.khm.reactivepostgres.entity.Professor;
@@ -38,7 +47,7 @@ public class ReactiveClientApplication {
 
         return args -> {
 
-            //Get all students
+            //FEATURE 1
             client
                 .get()
                 .uri("/student/getStudents")
@@ -49,6 +58,7 @@ public class ReactiveClientApplication {
                 .blockLast();
 
 
+            //FEATURE 2
             System.out.println("---Number Students---");
             client
                 .get()
@@ -62,7 +72,7 @@ public class ReactiveClientApplication {
                 
             
  
-
+            //FEATURE 3
             System.out.println("---Students still active ---");
             
             client
@@ -75,6 +85,7 @@ public class ReactiveClientApplication {
                 .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Credits:" + cr.getCredits()))
                 .blockLast();
 
+            //FEATURE 4
             System.out.println("---Courses completed---");
             client
                 .get()
@@ -85,6 +96,7 @@ public class ReactiveClientApplication {
                 .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Number Courses:" + cr.getCredits()/6))
                 .blockLast();
 
+            //FEATURE 5
             System.out.println("---Students in last year---");
             client
                 .get()
@@ -98,7 +110,7 @@ public class ReactiveClientApplication {
                 .blockLast();
 
             
-
+            //FEATURE 6
             System.out.println("---Student grades average---");
 
             Flux<Student> stream = client
@@ -124,6 +136,7 @@ public class ReactiveClientApplication {
             
                 //a.mean();
 
+            //FEATURE 7
             System.out.println("---Student who finished grades average---");
         
             Flux<Student> stream2 = client
@@ -184,18 +197,64 @@ public class ReactiveClientApplication {
             System.out.println( ((float) studentProfessorsQuantity.block() / (float)studentQuantity.block() ));
 
             //FEATURE 10
-            //System.out.println("Name and number of students per professor")
+            System.out.println("---Name and number of students per professor---");
             
             Flux<Student> student_stream3 = client
-                            .get()
-                            .uri("/student/getStudents")
-                            .accept(MediaType.TEXT_EVENT_STREAM)
-                            .retrieve()
-                            .bodyToFlux(Student.class);
+                                            .get()
+                                            .uri("/student/getStudents")
+                                            .accept(MediaType.TEXT_EVENT_STREAM)
+                                            .retrieve()
+                                            .bodyToFlux(Student.class);
 
             
+            Map<String,List<Student>> studentProfessorLinks =  new HashMap<String,List<Student>>();
 
+            client.get()
+                .uri("/get/allProfessors")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .retrieve()
+                .bodyToFlux(Professor.class)
+                .doOnNext(p -> studentProfessorLinks.put(p.getName(), new ArrayList<Student>()))
+                .blockLast();
+            
+            
+            
 
+            student_stream3.doOnNext(s -> client
+                                    .get()
+                                    .uri("/get/studentProf/{id}", s.getId())
+                                    .accept(MediaType.TEXT_EVENT_STREAM)
+                                    .retrieve()
+                                    .bodyToFlux(Long.class)
+                                    .flatMap(x-> client
+                                            .get()
+                                            .uri("/get/professor/{id}", x)
+                                            .accept(MediaType.TEXT_EVENT_STREAM)
+                                            .retrieve()
+                                            .bodyToFlux(Professor.class))
+                                    .doOnNext(p-> {
+                                
+                                        studentProfessorLinks.get(p.getName()).add(s);
+  
+                                    }).subscribe()).blockLast();
+        
+        Thread.sleep(1000);
+        //Adapted from https://stackoverflow.com/questions/30853117/how-can-i-sort-a-map-based-upon-on-the-size-of-its-collection-values
+        Map<String,List<Student>> sorted = studentProfessorLinks.entrySet().stream()
+                                    .sorted((l1,l2) -> l2.getValue().size()-l1.getValue().size())
+                                    .collect(toMap(
+                                        Map.Entry::getKey,
+                                        Map.Entry::getValue,
+                                        (a, b) -> { throw new AssertionError(); },
+                                        LinkedHashMap::new
+                                    )); 
+                        
+        sorted.forEach((k, v) ->{
+                String aux = "";
+                for(Student s : v){
+                    aux +=  s.getName()+"|";
+                }
+                System.out.println("Professor:" + k + "|Number Students: " + v.size() +  "|Students:" + aux);});
 
 
             //FEATURE 11
