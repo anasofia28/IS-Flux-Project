@@ -161,6 +161,7 @@ public class ReactiveClientApplication {
             //FEATURE 8
             System.out.println("Average grade for finished students: " + String.valueOf(mean2));
 
+            
             Long fluxSize = count2.block();
 
             stream2
