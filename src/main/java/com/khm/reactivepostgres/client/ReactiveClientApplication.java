@@ -1,7 +1,10 @@
 package com.khm.reactivepostgres.client;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -296,8 +299,22 @@ public class ReactiveClientApplication {
                         });
                         
             strings.doOnNext(s-> System.out.println(s)).blockLast();
-                    
+              
+            
+            System.out.println("---Oldest student---");
+
+            client
+                .get()
+                .uri("/student/getStudents")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .retrieve()
+                .bodyToFlux(Student.class)
+                .reduce(this::oldestDate)
+                .doOnNext(cr -> System.out.println(cr.getName() + " (" + cr.getBirthdate() + ")"))
+                .block();
+
         };
+        
     }
 
     public float calculateAverage(int sum, long size){
@@ -309,7 +326,33 @@ public class ReactiveClientApplication {
 
     }
 
-    public void printStudentData(Student student, WebClient client){
-       
+           
+    
+
+    public Student oldestDate(Student s1, Student s2){
+
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        Date date1 = new Date();
+        Date date2 = new Date();
+
+        try {
+            date1 = formatter.parse(s1.getBirthdate());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            date2 = formatter.parse(s2.getBirthdate());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    
+        if (date1.before(date2)) return s1;
+        else return s2;
     }
 }
+
+
+
+
+
