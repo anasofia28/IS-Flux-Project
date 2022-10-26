@@ -31,7 +31,7 @@ import reactor.core.publisher.Flux;
 
 @SpringBootApplication
 public class ReactiveClientApplication {
-    
+
     @Bean
     WebClient client(){
         return WebClient.create("http://localhost:8080");
@@ -43,14 +43,17 @@ public class ReactiveClientApplication {
         .run(args);    
     }
 
+    // ---------------------------------------------------------------------------------//
+    // CLIENT FEATURES -----------------------------------------------------------------//
 
     @Bean
     CommandLineRunner demo(WebClient client){
 
-
         return args -> {
 
             //FEATURE 1
+            System.out.println("--- 1. Students name and birthdates ---");
+
             client
                 .get()
                 .uri("/student/getStudents")
@@ -60,9 +63,9 @@ public class ReactiveClientApplication {
                 .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " BirthDate: " + cr.getBirthdate()))
                 .blockLast();
 
-
             //FEATURE 2
-            System.out.println("---Number Students---");
+            System.out.println("--- 2. Number of Students ---");
+
             client
                 .get()
                 .uri("/student/getStudents")
@@ -72,12 +75,10 @@ public class ReactiveClientApplication {
                 .count()
                 .doOnNext(cr -> System.out.println("Count " + cr))
                 .block(); 
-                
-            
- 
+
             //FEATURE 3
-            System.out.println("---Students still active ---");
-            
+            System.out.println("--- 3. Students still active ---");
+
             client
                 .get()
                 .uri("/student/getStudents")
@@ -89,7 +90,8 @@ public class ReactiveClientApplication {
                 .blockLast();
 
             //FEATURE 4
-            System.out.println("---Courses completed---");
+            System.out.println("--- 4. Courses completed ---");
+
             client
                 .get()
                 .uri("/student/getStudents")
@@ -100,7 +102,8 @@ public class ReactiveClientApplication {
                 .blockLast();
 
             //FEATURE 5
-            System.out.println("---Students in last year---");
+            System.out.println("--- 5. Students in last year ---");
+
             client
                 .get()
                 .uri("/student/getStudents")
@@ -114,7 +117,7 @@ public class ReactiveClientApplication {
 
             
             //FEATURE 6
-            System.out.println("---Student grades average---");
+            System.out.println("--- 6. Student grades average ---");
 
             Flux<Student> stream = client
                 .get()  
@@ -136,11 +139,10 @@ public class ReactiveClientApplication {
                 .doOnNext(cr-> System.out.println("Average grades: " + String.valueOf(cr)))
                 .blockLast();
 
-            
                 //a.mean();
 
             //FEATURE 7
-            System.out.println("---Student who finished grades average---");
+            System.out.println("--- 7. Student who finished grades average ---");
         
             Flux<Student> stream2 = client
                 .get()
@@ -162,9 +164,9 @@ public class ReactiveClientApplication {
                 .blockLast();
             
             //FEATURE 8
-            System.out.println("Average grade for finished students: " + String.valueOf(mean2));
+            System.out.println("--- 8. Average grade for finished students --- " );
+            System.out.println(String.valueOf(mean2));        ;
 
-            
             Long fluxSize = count2.block();
 
             stream2
@@ -172,12 +174,10 @@ public class ReactiveClientApplication {
                 .reduce((t, u) -> Double.sum(t, u))
                 .map(x ->  Math.sqrt(x/fluxSize))
                 .doOnNext(cr-> System.out.println("Standard deviation: " + String.valueOf(cr)))
-                .block();        
-
-
+                .block();
             
             //FEATURE 9
-            System.out.println("--- Average number of professors per student---");
+            System.out.println("--- 9. Average number of professors per student ---");
 
             Flux<Student> student_stream = client
                 .get()
@@ -201,7 +201,7 @@ public class ReactiveClientApplication {
             System.out.println( ((float) studentProfessorsQuantity.block() / (float)studentQuantity.block() ));
 
             //FEATURE 10
-            System.out.println("---Name and number of students per professor---");
+            System.out.println("--- 10. Name and number of students per professor ---");
             
             Flux<Student> student_stream3 = client
                                             .get()
@@ -220,9 +220,6 @@ public class ReactiveClientApplication {
                 .bodyToFlux(Professor.class)
                 .doOnNext(p -> studentProfessorLinks.put(p.getName(), new ArrayList<Student>()))
                 .blockLast();
-            
-            
-            
 
             student_stream3.doOnNext(s -> client
                                     .get()
@@ -262,7 +259,7 @@ public class ReactiveClientApplication {
 
 
             //FEATURE 11
-            System.out.println("---Complete data of all students---");
+            System.out.println("--- 11. Complete data of all students ---");
             Flux<Student> student_stream2 = client
                             .get()
                             .uri("/student/getStudents")
@@ -301,7 +298,7 @@ public class ReactiveClientApplication {
             strings.doOnNext(s-> System.out.println(s)).blockLast();
               
             
-            System.out.println("---Oldest student---");
+            System.out.println("--- 12. Oldest student ---");
 
             client
                 .get()
@@ -317,6 +314,9 @@ public class ReactiveClientApplication {
         
     }
 
+    // ---------------------------------------------------------------------------------//
+    // CLIENT FUNCTIONS ----------------------------------------------------------------//
+
     public float calculateAverage(int sum, long size){
         return (float)sum/size;
     }
@@ -325,9 +325,6 @@ public class ReactiveClientApplication {
         return Math.pow(grade - mean, 2);
 
     }
-
-           
-    
 
     public Student oldestDate(Student s1, Student s2){
 
@@ -350,6 +347,7 @@ public class ReactiveClientApplication {
         if (date1.before(date2)) return s1;
         else return s2;
     }
+
 }
 
 

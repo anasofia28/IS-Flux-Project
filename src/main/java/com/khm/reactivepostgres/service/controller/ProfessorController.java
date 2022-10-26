@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ProfessorController {
 
-    private final ProfessorRepository professorRepository; 
+    private final ProfessorRepository professorRepository;
 
     // Create professor
     @PostMapping
