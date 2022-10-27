@@ -84,26 +84,22 @@ public class ReactiveServiceApplication {
     // AUTOMATIC CLIENT2 POPULATING DATABASE -------------------------------------------//
 
     @PostMapping("/add/student")
-    String addStudent(@RequestBody Student s) {
+    Mono<Student> addStudent(@RequestBody Student s) {
         sr.save(s).subscribe();
-        return "Student added!";
+        return Mono.just(s);
     }
 
     @PostMapping("/add/professor")
-    String addProfessor(@RequestBody Professor p) {
+    Mono<Professor> addProfessor(@RequestBody Professor p) {
         pr.save(p).subscribe();
-        return "Professor added!";
+        return Mono.just(p);
     }
 
-    @GetMapping("/add/relationships")
+    @PostMapping("/add/relationships")
     Mono<StudentProfessor> addRelationship(@RequestBody StudentProfessor sp) {
-
-        long studentId = sp.getStudentId();
-        long professorId = sp.getProfessorId();
-
-        StudentProfessor new_relation = new StudentProfessor(studentId, professorId);
-        spr.save(new_relation).subscribe();
-        return Mono.just(new_relation);
+        System.out.println("yeeeeeet");
+        spr.save(sp).subscribe();
+        return Mono.just(sp);
     }
 
     // ---------------------------------------------------------------------------------//

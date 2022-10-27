@@ -1,5 +1,6 @@
 package com.khm.reactivepostgres.client;
 
+import java.awt.image.DataBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,32 +21,35 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.khm.reactivepostgres.entity.Student;
 import com.khm.reactivepostgres.entity.Professor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@SpringBootApplication
 public class Client2 {
 
     // ---------------------------------------------------------------------------------//
     // CLIENT2 CONNECTION --------------------------------------------------------------//
 
-    public static void main(String[] args) {
+    static WebClient getWebClient() {
 
-        //TODO: connect client to server
-        //TODO: retry connections when it fails
-
-        new SpringApplicationBuilder(ReactiveClientApplication.class)
-                .properties(Collections.singletonMap("server.port", "8082"))
-                .run(args);
-
-        WebClient client = WebClient.create("http://localhost:8080");
-
-        System.out.println("Entrou no demo 2");
-        List<Student> students = addStudents(client, 100);
-        List<Professor> profs = addProfessors(client, 100);
-        addRelationships(client, 100, students, profs);
+        WebClient.Builder webClientBuilder = WebClient.builder();
+        return webClientBuilder.build();
 
     }
 
+    public static void main(String[] args) {
+
+        WebClient client = WebClient.create("http://localhost:8080");
+
+        //TODO: retry connections when it fails
+
+        List<Student> students = addStudents(client, 100);
+        System.out.println("Students added!");
+        List<Professor> profs = addProfessors(client, 100);
+        System.out.println("Professors added!");
+        addRelationships(client, 100, students, profs);
+        System.out.println("Relationships added!");
+
+    }
 
     // ---------------------------------------------------------------------------------//
     // POPULATE DATABASE ---------------------------------------------------------------//
@@ -58,6 +62,7 @@ public class Client2 {
         Date date = faker.date().birthday();
         String birthDate = sdf.format(date);
         int credits = faker.number().numberBetween(0, 180);
+        if( Math.random() < 0.05 ) credits = 180;
         int grade = faker.number().numberBetween(0, 20);
 
         return new Student(name, birthDate, credits, grade);
@@ -81,9 +86,14 @@ public class Client2 {
             Student s = createRandomStudent();
             client.post()
                     .uri("/add/student")
-                    .accept(MediaType.TEXT_EVENT_STREAM)
-                    .body(Mono.just(s), Student.class);
+                    .body(Mono.just(s), Student.class)
+                    .retrieve()
+                    .bodyToMono(Student.class)
+                    .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " BirthDate: " + cr.getBirthdate()))
+                    .block();
+
             students.add(s);
+
         }
 
         return students;
@@ -99,8 +109,11 @@ public class Client2 {
             Professor p = createRandomProfessor();
             client.post()
                     .uri("/add/professor")
-                    .accept(MediaType.TEXT_EVENT_STREAM)
-                    .body(Mono.just(p), Professor.class);
+                    .body(Mono.just(p), Professor.class)
+                    .retrieve()
+                    .bodyToMono(Professor.class)
+                    .doOnNext(cr -> System.out.println("Name: " + cr.getName()))
+                    .block();
 
             professors.add(p);
 
@@ -117,14 +130,15 @@ public class Client2 {
             long randomNum = ThreadLocalRandom.current().nextInt(1, quantity);
             long randomNum2 = ThreadLocalRandom.current().nextInt(1, quantity);
 
-            StudentProfessor sp = new StudentProfessor();
-            sp.setProfessorId(randomNum);
-            sp.setStudentId(randomNum2);
+            StudentProfessor sp = new StudentProfessor(randomNum, randomNum2);
 
             client.post()
                     .uri("/add/relationships")
-                    .accept(MediaType.TEXT_EVENT_STREAM)
-                    .body(Mono.just(sp), StudentProfessor.class);
+                    .body(Mono.just(sp), StudentProfessor.class)
+                    .retrieve()
+                    .bodyToMono(StudentProfessor.class)
+                    .doOnNext(cr -> System.out.println("Prof ID: " + cr.getProfessorId() + " Student ID: " + cr.getStudentId()))
+                    .block();
 
         }
     }
