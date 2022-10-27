@@ -16,6 +16,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toMap;
 import static java.util.Map.Entry.comparingByValue;
@@ -31,305 +32,314 @@ import reactor.core.publisher.Flux;
 
 @SpringBootApplication
 public class ReactiveClientApplication {
-    
+
     @Bean
-    WebClient client(){
+    WebClient client() {
         return WebClient.create("http://localhost:8080");
     }
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(ReactiveClientApplication.class)
-        .properties(Collections.singletonMap("server.port", "8081"))
-        .run(args);    
+                .properties(Collections.singletonMap("server.port", "8081"))
+                .run(args);
     }
 
+    // ---------------------------------------------------------------------------------//
+    // CLIENT FEATURES -----------------------------------------------------------------//
 
     @Bean
-    CommandLineRunner demo(WebClient client){
-
+    CommandLineRunner demo(WebClient client) {
 
         return args -> {
 
             //FEATURE 1
-            client
-                .get()
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class)
-                .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " BirthDate: " + cr.getBirthdate()))
-                .blockLast();
+            System.out.println("--- 1. Students name and birthdates ---");
 
+            client
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class)
+                    .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " BirthDate: " + cr.getBirthdate()))
+                    .blockLast();
 
             //FEATURE 2
-            System.out.println("---Number Students---");
+            System.out.println("--- 2. Number of Students ---");
+
             client
-                .get()
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class)
-                .count()
-                .doOnNext(cr -> System.out.println("Count " + cr))
-                .block(); 
-                
-            
- 
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class)
+                    .count()
+                    .doOnNext(cr -> System.out.println("Count " + cr))
+                    .block();
+
             //FEATURE 3
-            System.out.println("---Students still active ---");
-            
+            System.out.println("--- 3. Students still active ---");
+
             client
-                .get()
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class)
-                .filter(gr -> gr.getCredits() < 180)
-                .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Credits:" + cr.getCredits()))
-                .blockLast();
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class)
+                    .filter(gr -> gr.getCredits() < 180)
+                    .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Credits:" + cr.getCredits()))
+                    .blockLast();
 
             //FEATURE 4
-            System.out.println("---Courses completed---");
+            System.out.println("--- 4. Courses completed ---");
+
             client
-                .get()
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class)
-                .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Number Courses:" + cr.getCredits()/6))
-                .blockLast();
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class)
+                    .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Number Courses:" + cr.getCredits() / 6))
+                    .blockLast();
 
             //FEATURE 5
-            System.out.println("---Students in last year---");
-            client
-                .get()
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class)
-                .filter(gr -> gr.getCredits() < 180 && gr.getCredits() >= 120)
-                .sort((s1,s2) -> {return s2.getCredits()-s1.getCredits();})
-                .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Credits:" + cr.getCredits()))
-                .blockLast();
+            System.out.println("--- 5. Students in last year ---");
 
-            
+            client
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class)
+                    .filter(gr -> gr.getCredits() < 180 && gr.getCredits() >= 120)
+                    .sort((s1, s2) -> {
+                        return s2.getCredits() - s1.getCredits();
+                    })
+                    .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " Credits:" + cr.getCredits()))
+                    .blockLast();
+
+
             //FEATURE 6
-            System.out.println("---Student grades average---");
+            System.out.println("--- 6. Student grades average and std ---");
 
             Flux<Student> stream = client
-                .get()  
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class);
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class);
 
 
             Mono<Integer> sum = stream
-                    .map( s -> s.getGrade())
-                    .reduce(0,(x1, x2) -> x1 + x2);
+                    .map(s -> s.getGrade())
+                    .reduce(0, (x1, x2) -> x1 + x2);
 
             Mono<Long> count = stream
-                    .count(); 
-            
-            Flux.zip(sum, count)
-                .map(x-> calculateAverage(x.getT1(),x.getT2()))
-                .doOnNext(cr-> System.out.println("Average grades: " + String.valueOf(cr)))
-                .blockLast();
+                    .count();
 
-            
-                //a.mean();
+            Float mean = Flux.zip(sum, count)
+                    .map(x -> calculateAverage(x.getT1(), x.getT2()))
+                    .doOnNext(cr -> System.out.println("Average grades: " + String.valueOf(cr)))
+                    .blockLast();
+
+            Long fluxSize0 = count.block();
+
+            stream
+                    .map(x -> calculateStandardDeviation(x.getGrade(), mean))
+                    .reduce(Double::sum)
+                    .map(x -> Math.sqrt(x / fluxSize0))
+                    .doOnNext(cr -> System.out.println("Standard deviation: " + String.valueOf(cr)))
+                    .block();
 
             //FEATURE 7
-            System.out.println("---Student who finished grades average---");
-        
-            Flux<Student> stream2 = client
-                .get()
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class)
-                .filter(gr -> gr.getCredits() == 180);
-            
-            Mono<Integer> sum2 =  stream2
-                        .map( s -> s.getGrade())
-                        .reduce(0,(x1, x2) -> x1 + x2);
-                    
-            Mono<Long> count2 = stream2
-                        .count();
-            
-            Float mean2 = Flux.zip(sum2, count2)
-                .map(x-> calculateAverage(x.getT1(),x.getT2()))
-                .blockLast();
-            
-            //FEATURE 8
-            System.out.println("Average grade for finished students: " + String.valueOf(mean2));
+            System.out.println("--- 7. Student who finished grades average and std ---");
 
-            
+            Flux<Student> stream2 = client
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class)
+                    .filter(gr -> gr.getCredits() == 180);
+
+            Mono<Integer> sum2 = stream2
+                    .map(Student::getGrade)
+                    .reduce(0, Integer::sum);
+
+            Mono<Long> count2 = stream2
+                    .count();
+
+            Float mean2 = Flux.zip(sum2, count2)
+                    .map(x -> calculateAverage(x.getT1(), x.getT2()))
+                    .blockLast();
+
+            System.out.println("Mean: " + String.valueOf(mean2));
+
             Long fluxSize = count2.block();
 
             stream2
-                .map(x -> calculateStandardDeviation(x.getGrade(), mean2))
-                .reduce((t, u) -> Double.sum(t, u))
-                .map(x ->  Math.sqrt(x/fluxSize))
-                .doOnNext(cr-> System.out.println("Standard deviation: " + String.valueOf(cr)))
-                .block();        
+                    .map(x -> calculateStandardDeviation(x.getGrade(), mean2))
+                    .reduce(Double::sum)
+                    .map(x -> Math.sqrt(x / fluxSize))
+                    .doOnNext(cr -> System.out.println("Standard deviation: " + String.valueOf(cr)))
+                    .block();
 
+            //FEATURE 8
+            System.out.println("--- 8. Eldest student ---");
 
-            
+            client
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class)
+                    .reduce(this::oldestDate)
+                    .doOnNext(cr -> System.out.println(cr.getName() + " (" + cr.getBirthdate() + ")"))
+                    .block();
+
             //FEATURE 9
-            System.out.println("--- Average number of professors per student---");
+            System.out.println("--- 9. Average number of professors per student ---");
 
             Flux<Student> student_stream = client
-                .get()
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class);
-            
-            Mono<Long> studentQuantity =  student_stream
-                                        .count();
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class);
+
+            Mono<Long> studentQuantity = student_stream
+                    .count();
 
             Mono<Long> studentProfessorsQuantity = student_stream.
-                                            flatMap((s) -> { return client
-                                                                .get()
-                                                                .uri("/get/studentProf/{id}", s.getId())
-                                                                .accept(MediaType.TEXT_EVENT_STREAM)
-                                                                .retrieve()
-                                                                .bodyToFlux(Long.class);})
-                                            .count();
+                    flatMap((s) -> {
+                        return client
+                                .get()
+                                .uri("/get/studentProf/{id}", s.getId())
+                                .accept(MediaType.TEXT_EVENT_STREAM)
+                                .retrieve()
+                                .bodyToFlux(Long.class);
+                    })
+                    .count();
 
-            System.out.println( ((float) studentProfessorsQuantity.block() / (float)studentQuantity.block() ));
+            System.out.println(((float) studentProfessorsQuantity.block() / (float) studentQuantity.block()));
 
             //FEATURE 10
-            System.out.println("---Name and number of students per professor---");
-            
-            Flux<Student> student_stream3 = client
-                                            .get()
-                                            .uri("/student/getStudents")
-                                            .accept(MediaType.TEXT_EVENT_STREAM)
-                                            .retrieve()
-                                            .bodyToFlux(Student.class);
+            System.out.println("--- 10. Name and number of students per professor ---");
 
-            
-            Map<String,List<Student>> studentProfessorLinks =  new HashMap<String,List<Student>>();
+            Flux<Student> student_stream3 = client
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class);
+
+
+            Map<String, List<Student>> studentProfessorLinks = new HashMap<String, List<Student>>();
 
             client.get()
-                .uri("/get/allProfessors")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Professor.class)
-                .doOnNext(p -> studentProfessorLinks.put(p.getName(), new ArrayList<Student>()))
-                .blockLast();
-            
-            
-            
+                    .uri("/get/allProfessors")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Professor.class)
+                    .doOnNext(p -> studentProfessorLinks.put(p.getName(), new ArrayList<Student>()))
+                    .blockLast();
 
             student_stream3.doOnNext(s -> client
-                                    .get()
-                                    .uri("/get/studentProf/{id}", s.getId())
-                                    .accept(MediaType.TEXT_EVENT_STREAM)
-                                    .retrieve()
-                                    .bodyToFlux(Long.class)
-                                    .flatMap(x-> client
-                                            .get()
-                                            .uri("/get/professor/{id}", x)
-                                            .accept(MediaType.TEXT_EVENT_STREAM)
-                                            .retrieve()
-                                            .bodyToFlux(Professor.class))
-                                    .doOnNext(p-> {
-                                
-                                        studentProfessorLinks.get(p.getName()).add(s);
-  
-                                    }).subscribe()).blockLast();
-        
-        Thread.sleep(1000);
-        //Adapted from https://stackoverflow.com/questions/30853117/how-can-i-sort-a-map-based-upon-on-the-size-of-its-collection-values
-        Map<String,List<Student>> sorted = studentProfessorLinks.entrySet().stream()
-                                    .sorted((l1,l2) -> l2.getValue().size()-l1.getValue().size())
-                                    .collect(toMap(
-                                        Map.Entry::getKey,
-                                        Map.Entry::getValue,
-                                        (a, b) -> { throw new AssertionError(); },
-                                        LinkedHashMap::new
-                                    )); 
-                        
-        sorted.forEach((k, v) ->{
+                    .get()
+                    .uri("/get/studentProf/{id}", s.getId())
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Long.class)
+                    .flatMap(x -> client
+                            .get()
+                            .uri("/get/professor/{id}", x)
+                            .accept(MediaType.TEXT_EVENT_STREAM)
+                            .retrieve()
+                            .bodyToFlux(Professor.class))
+                    .doOnNext(p -> {
+
+                        studentProfessorLinks.get(p.getName()).add(s);
+
+                    }).subscribe()).blockLast();
+
+            Thread.sleep(1000);
+            //Adapted from https://stackoverflow.com/questions/30853117/how-can-i-sort-a-map-based-upon-on-the-size-of-its-collection-values
+            Map<String, List<Student>> sorted = studentProfessorLinks.entrySet().stream()
+                    .sorted((l1, l2) -> l2.getValue().size() - l1.getValue().size())
+                    .collect(toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (a, b) -> {
+                                throw new AssertionError();
+                            },
+                            LinkedHashMap::new
+                    ));
+
+            sorted.forEach((k, v) -> {
                 String aux = "";
-                for(Student s : v){
-                    aux +=  s.getName()+"|";
+                for (Student s : v) {
+                    aux += s.getName() + "|";
                 }
-                System.out.println("Professor:" + k + "|Number Students: " + v.size() +  "|Students:" + aux);});
+                System.out.println("Professor:" + k + "|Number Students: " + v.size() + "|Students:" + aux);
+            });
 
 
             //FEATURE 11
-            System.out.println("---Complete data of all students---");
+            System.out.println("--- 11. Complete data of all students ---");
             Flux<Student> student_stream2 = client
-                            .get()
-                            .uri("/student/getStudents")
-                            .accept(MediaType.TEXT_EVENT_STREAM)
-                            .retrieve()
-                            .bodyToFlux(Student.class);
-            
+                    .get()
+                    .uri("/student/getStudents")
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .bodyToFlux(Student.class);
+
             Flux<String> strings = student_stream2
-                    .flatMap( (s) ->{
-                        Mono<String> a = Mono.just("Name: "+ s.getName() + "|Birthdate: " + s.getBirthdate() + "|Credits: " + s.getCredits() + "|Grades: " + s.getGrade() + "|Professors:");
+                    .flatMap((s) -> {
+                        Mono<String> a = Mono.just("Name: " + s.getName() + "|Birthdate: " + s.getBirthdate() + "|Credits: " + s.getCredits() + "|Grades: " + s.getGrade() + "|Professors:");
 
                         Flux<Long> teachersId = client
-                                    .get()
-                                    .uri("/get/studentProf/{id}", s.getId())
-                                    .accept(MediaType.TEXT_EVENT_STREAM)
-                                    .retrieve()
-                                    .bodyToFlux(Long.class);
+                                .get()
+                                .uri("/get/studentProf/{id}", s.getId())
+                                .accept(MediaType.TEXT_EVENT_STREAM)
+                                .retrieve()
+                                .bodyToFlux(Long.class);
 
                         return Mono.zip(a, teachersId
-                                            .flatMap((x) ->  client
-                                                            .get()
-                                                            .uri("/get/professor/{id}", x)
-                                                            .accept(MediaType.TEXT_EVENT_STREAM)
-                                                            .retrieve()
-                                                            .bodyToFlux(Professor.class))
-                                                            .map(p->p.getName())
-                                            .collectList()
-                                            .flatMap(l -> {
-                                                if(l.isEmpty()) return Mono.just(" No professors");
-                                                return Mono.just(l);
-                                            }))                                            
+                                        .flatMap((x) -> client
+                                                .get()
+                                                .uri("/get/professor/{id}", x)
+                                                .accept(MediaType.TEXT_EVENT_STREAM)
+                                                .retrieve()
+                                                .bodyToFlux(Professor.class))
+                                        .map(p -> p.getName())
+                                        .collectList()
+                                        .flatMap(l -> {
+                                            if (l.isEmpty()) return Mono.just(" No professors");
+                                            return Mono.just(l);
+                                        }))
 
                                 .map(x -> x.getT1() + x.getT2());
-                        });
-                        
-            strings.doOnNext(s-> System.out.println(s)).blockLast();
-              
-            
-            System.out.println("---Oldest student---");
+                    });
 
-            client
-                .get()
-                .uri("/student/getStudents")
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(Student.class)
-                .reduce(this::oldestDate)
-                .doOnNext(cr -> System.out.println(cr.getName() + " (" + cr.getBirthdate() + ")"))
-                .block();
+            strings.doOnNext(s -> System.out.println(s)).blockLast();
 
         };
-        
+
     }
 
-    public float calculateAverage(int sum, long size){
-        return (float)sum/size;
+    // ---------------------------------------------------------------------------------//
+    // CLIENT FUNCTIONS ----------------------------------------------------------------//
+
+    public float calculateAverage(int sum, long size) {
+        return (float) sum / size;
     }
 
-    public double calculateStandardDeviation(int grade, float mean){
+    public double calculateStandardDeviation(int grade, float mean) {
         return Math.pow(grade - mean, 2);
 
     }
 
-           
-    
-
-    public Student oldestDate(Student s1, Student s2){
+    public Student oldestDate(Student s1, Student s2) {
 
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
         Date date1 = new Date();
@@ -346,10 +356,11 @@ public class ReactiveClientApplication {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-    
+
         if (date1.before(date2)) return s1;
         else return s2;
     }
+
 }
 
 

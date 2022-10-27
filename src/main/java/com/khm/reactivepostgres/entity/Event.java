@@ -1,12 +1,12 @@
 package com.khm.reactivepostgres.entity;
 
 import java.util.Date;
-
 import lombok.Data;
 
 
 @Data
 public class Event{
+
     public long id;
     public Date when;
 
@@ -17,7 +17,5 @@ public class Event{
         this.id = id;
         this.when = when;
     }
-
-
     
 }

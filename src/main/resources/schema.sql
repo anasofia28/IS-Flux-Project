@@ -1,6 +1,7 @@
+DROP TABLE IF EXISTS professor_student;
 DROP TABLE IF EXISTS student_professor;
-DROP TABLE IF EXISTS student;
-DROP TABLE IF EXISTS professor;
+DROP TABLE IF EXISTS student CASCADE;
+DROP TABLE IF EXISTS professor CASCADE;
 
 
 CREATE TABLE student (

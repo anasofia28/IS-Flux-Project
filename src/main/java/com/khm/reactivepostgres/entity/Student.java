@@ -5,9 +5,9 @@ import java.util.Date;
 import org.springframework.data.annotation.Id;
 
 public class Student {
+
     @Id
     Long id;
-
     String name;
     String birthdate;
     int credits;
@@ -69,7 +69,5 @@ public class Student {
         this.credits = credits;
         this.grade = grade;
     }
-
-    
 
 }

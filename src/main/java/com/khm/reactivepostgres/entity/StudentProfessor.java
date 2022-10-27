@@ -3,6 +3,7 @@ package com.khm.reactivepostgres.entity;
 import org.springframework.data.annotation.Id;
 
 public class StudentProfessor {
+
     @Id
     Long id;
     Long professor_id;
