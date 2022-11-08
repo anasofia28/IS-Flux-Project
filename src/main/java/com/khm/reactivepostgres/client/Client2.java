@@ -1,27 +1,16 @@
 package com.khm.reactivepostgres.client;
 
-import java.awt.image.DataBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
 import com.github.javafaker.Faker;
-import com.khm.reactivepostgres.client.ReactiveClientApplication;
 import com.khm.reactivepostgres.entity.StudentProfessor;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.khm.reactivepostgres.entity.Student;
 import com.khm.reactivepostgres.entity.Professor;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public class Client2 {

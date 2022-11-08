@@ -2,6 +2,8 @@ package com.khm.reactivepostgres.service;
 
 import java.time.Duration;
 import java.util.Arrays;
+
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,6 +26,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 import io.r2dbc.spi.ConnectionFactory;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
@@ -35,7 +38,7 @@ import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
 @EnableR2dbcAuditing
 @RestController
 public class ReactiveServiceApplication {
-
+    static Logger logger = Logger.getLogger(ReactiveServiceApplication.class.getName());
     StudentRepository sr;
     ProfessorRepository pr;
     StudentProfessorRepository spr;
@@ -97,7 +100,6 @@ public class ReactiveServiceApplication {
 
     @PostMapping("/add/relationships")
     Mono<StudentProfessor> addRelationship(@RequestBody StudentProfessor sp) {
-        System.out.println("yeeeeeet");
         spr.save(sp).subscribe();
         return Mono.just(sp);
     }
@@ -122,52 +124,32 @@ public class ReactiveServiceApplication {
     @Bean
     public CommandLineRunner run(StudentRepository studentRepository, ProfessorRepository professorRepository, StudentProfessorRepository studentProfessorRepository) {
 
+      return (args) -> {
+        logger.warn("Warning");
+        logger.debug("Gone down");
+        logger.info("Info log message");
 
-        return (args) -> {
+        sr = studentRepository;
+        pr = professorRepository;
+        spr = studentProfessorRepository;
 
-            sr = studentRepository;
-            pr = professorRepository;
-            spr = studentProfessorRepository;
+        // save a few customers
+        studentRepository.saveAll(Arrays.asList(new Student("Rodas", "09-06-2001", 70, 4),
+                        new Student("Edgar", "27-02-2001", 120, 20),
+                        new Student("Alexy", "23-11-1995", 180, 16),
+                        new Student("Tatiana", "05-05-2001", 180, 15),
+                        new Student("Sofia", "28-05-2001", 140, 16)))
+                .blockLast(Duration.ofSeconds(10));
 
-            // save a few customers
-            studentRepository.saveAll(Arrays.asList(new Student("Rodas", "09-06-2001", 70, 4),
-                            new Student("Edgar", "27-02-2001", 120, 20),
-                            new Student("Alexy", "23-11-1995", 180, 16),
-                            new Student("Tatiana", "05-05-2001", 180, 15),
-                            new Student("Sofia", "28-05-2001", 140, 16)))
-                    .blockLast(Duration.ofSeconds(10));
+        professorRepository.saveAll(Arrays.asList(new Professor("Filipe"),
+                        new Professor("Andre"),
+                        new Professor("Nuno")))
+                .blockLast(Duration.ofSeconds(10));
 
-            professorRepository.saveAll(Arrays.asList(new Professor("Filipe"),
-                            new Professor("Andre"),
-                            new Professor("Nuno")))
-                    .blockLast(Duration.ofSeconds(10));
-
-
-            // fetch all customers
-      /*log.info("Customers found with findAll():");
-      log.info("-------------------------------");
-      studentRepository.findAll().doOnNext(customer -> {
-        log.info(customer.toString());
-      }).blockLast(Duration.ofSeconds(10));
-
-      log.info("");
-
-            // fetch an individual customer by ID
-        studentRepository.findById(1L).doOnNext(customer -> {
-        log.info("Customer found with findById(1L):");
-        log.info("--------------------------------");
-        log.info(customer.toString());
-        log.info("");
-      }).block(Duration.ofSeconds(10));
-
-
-      // fetch customers by last name
-      log.info("Customer found with findByLastName('Almeida'):");
-      log.info("--------------------------------------------");
-      studentRepository.findByLastName("Almeida").doOnNext(bauer -> {
-        log.info(bauer.toString());
-        }).blockLast(Duration.ofSeconds(10));;
-        log.info("");*/
+        studentProfessorRepository.saveAll(Arrays.asList(new StudentProfessor(1l,1l), new StudentProfessor(2l,1l)))
+                .blockLast(Duration.ofSeconds(10));
         };
+
+        
     }
 }
