@@ -48,11 +48,13 @@ public class ReactiveServiceApplication {
 
     @GetMapping("/student/getStudents")
     Flux<Student> eventById() {
+        logger.info("All students were given");
         return sr.findAll();
     }
 
     @GetMapping("/add/relationship/{id1}/{id2}")
     Mono<StudentProfessor> addRelationship(@PathVariable long id1, @PathVariable long id2) {
+        logger.info("Realtionship: " + String.valueOf(id1) + " " + String.valueOf(id2) + " added");
         StudentProfessor new_relation = new StudentProfessor(id1, id2);
         spr.save(new_relation).subscribe();
         return Mono.just(new_relation);
@@ -61,6 +63,7 @@ public class ReactiveServiceApplication {
     @GetMapping("/delete/relationship/{id1}")
     public String removeRelationship(@PathVariable long id1) {
         spr.deleteById(id1).subscribe();
+        logger.info("Removed relationship: " + String.valueOf(id1));
         return "Relation " + String.valueOf(id1) + " removed successfully";
     }
 
@@ -74,12 +77,13 @@ public class ReactiveServiceApplication {
 
     @GetMapping("get/professor/{id1}")
     Mono<Professor> getProfessor(@PathVariable long id1) {
-
+        logger.info("Professors" + String.valueOf(id1) + " was given");
         return pr.findById(id1);
     }
 
     @GetMapping("get/allProfessors")
     public Flux<Professor> getAllProfessors() {
+        logger.info("All professors were given");
         return pr.findAll();
     }
 
@@ -88,18 +92,21 @@ public class ReactiveServiceApplication {
 
     @PostMapping("/add/student")
     Mono<Student> addStudent(@RequestBody Student s) {
+        logger.info("Added student: " + s.getName());
         sr.save(s).subscribe();
         return Mono.just(s);
     }
 
     @PostMapping("/add/professor")
     Mono<Professor> addProfessor(@RequestBody Professor p) {
+        logger.info("Added professor: " + p.getName());
         pr.save(p).subscribe();
         return Mono.just(p);
     }
 
     @PostMapping("/add/relationships")
     Mono<StudentProfessor> addRelationship(@RequestBody StudentProfessor sp) {
+        logger.info("Realtionship: " + String.valueOf(sp.getProfessorId()) + " " + String.valueOf(sp.getStudentId()) + " added!");
         spr.save(sp).subscribe();
         return Mono.just(sp);
     }
@@ -125,10 +132,7 @@ public class ReactiveServiceApplication {
     public CommandLineRunner run(StudentRepository studentRepository, ProfessorRepository professorRepository, StudentProfessorRepository studentProfessorRepository) {
 
       return (args) -> {
-        logger.warn("Warning");
-        logger.debug("Gone down");
-        logger.info("Info log message");
-
+        
         sr = studentRepository;
         pr = professorRepository;
         spr = studentProfessorRepository;
