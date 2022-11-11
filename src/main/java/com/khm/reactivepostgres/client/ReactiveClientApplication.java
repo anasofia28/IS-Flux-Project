@@ -278,14 +278,11 @@ public class ReactiveClientApplication {
 
         //FEATURE 11
         System.out.println("--- 11. Complete data of all students ---");
-        Flux<Student> student_stream2 = client
-                .get()
+        client .get()
                 .uri("/student/getStudents")
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
-                .bodyToFlux(Student.class);
-
-        Flux<String> strings = student_stream2
+                .bodyToFlux(Student.class)
                 .flatMap((s) -> {
                     Mono<String> a = Mono.just("Name: " + s.getName() + "|Birthdate: " + s.getBirthdate() + "|Credits: " + s.getCredits() + "|Grades: " + s.getGrade() + "|Professors:");
 
@@ -311,9 +308,8 @@ public class ReactiveClientApplication {
                                     }))
 
                             .map(x -> x.getT1() + x.getT2());
-                });
-
-        strings.doOnNext(s -> System.out.println(s)).blockLast();
+                        })
+                .doOnNext(s -> System.out.println(s)).blockLast();
         
         System.exit(0);
     
