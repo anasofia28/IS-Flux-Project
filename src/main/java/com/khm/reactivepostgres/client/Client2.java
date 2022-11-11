@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.github.javafaker.Faker;
@@ -29,14 +30,24 @@ public class Client2 {
 
         WebClient client = WebClient.create("http://localhost:8080");
 
-        //TODO: retry connections when it fails
+        Scanner sc = new Scanner(System.in);
 
-        List<Student> students = addStudents(client, 100);
-        System.out.println("Students added!");
-        List<Professor> profs = addProfessors(client, 100);
-        System.out.println("Professors added!");
-        addRelationships(client, 100, students, profs);
-        System.out.println("Relationships added!");
+        System.out.println("n students: ");
+        int n_students = sc.nextInt();
+        System.out.println("n professors: ");
+        int n_profs = sc.nextInt();
+        System.out.println("n relations: ");
+        int n_relations = sc.nextInt();
+
+        System.out.println("\nGenerating students...");
+        List<Student> students = addStudents(client, n_students);
+        System.out.println("Students added!\n");
+        System.out.println("Generating professors...");
+        List<Professor> profs = addProfessors(client, n_profs);
+        System.out.println("Professors added!\n");
+        System.out.println("Generating relationships...");
+        addRelationships(client, n_relations, students, profs);
+        System.out.println("Relationships added!\n");
 
     }
 
@@ -78,7 +89,6 @@ public class Client2 {
                     .body(Mono.just(s), Student.class)
                     .retrieve()
                     .bodyToMono(Student.class)
-                    .doOnNext(cr -> System.out.println("Name: " + cr.getName() + " BirthDate: " + cr.getBirthdate()))
                     .block();
 
             students.add(s);
@@ -101,7 +111,6 @@ public class Client2 {
                     .body(Mono.just(p), Professor.class)
                     .retrieve()
                     .bodyToMono(Professor.class)
-                    .doOnNext(cr -> System.out.println("Name: " + cr.getName()))
                     .block();
 
             professors.add(p);
@@ -126,7 +135,6 @@ public class Client2 {
                     .body(Mono.just(sp), StudentProfessor.class)
                     .retrieve()
                     .bodyToMono(StudentProfessor.class)
-                    .doOnNext(cr -> System.out.println("Prof ID: " + cr.getProfessorId() + " Student ID: " + cr.getStudentId()))
                     .block();
 
         }
