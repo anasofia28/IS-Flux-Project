@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: com.khm.reactivepostgres.client.Client2
+
