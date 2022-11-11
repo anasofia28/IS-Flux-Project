@@ -2,6 +2,7 @@ package com.khm.reactivepostgres.client;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -18,7 +19,10 @@ import static java.util.stream.Collectors.toMap;
 
 import com.khm.reactivepostgres.entity.Professor;
 import com.khm.reactivepostgres.entity.Student;
+
+
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 import reactor.core.publisher.Flux;
 
 
@@ -198,6 +202,7 @@ public class ReactiveClientApplication {
         Mono<Long> studentQuantity = student_stream
                 .count();
 
+        
         Mono<Long> studentProfessorsQuantity = student_stream.
                 flatMap((s) -> {
                     return client
@@ -207,7 +212,8 @@ public class ReactiveClientApplication {
                             .retrieve()
                             .bodyToFlux(Long.class);
                 })
-                .count();
+                .count()
+                .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(4)));
 
         System.out.println(((float) studentProfessorsQuantity.block() / (float) studentQuantity.block()));
 
@@ -251,7 +257,7 @@ public class ReactiveClientApplication {
                 }).subscribe()).blockLast();
 
         try {
-            Thread.sleep(500);
+            Thread.sleep(400);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
